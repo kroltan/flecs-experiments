@@ -1,0 +1,6 @@
+[submodule "flecs"]
+	path = flecs
+	url = git@github.com:SanderMertens/flecs.git
+[submodule "raylib"]
+	path = raylib
+	url = git@github.com:raysan5/raylib.git

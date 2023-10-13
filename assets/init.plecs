@@ -1,0 +1,41 @@
+Prefab Black {
+    - sdf.Order { 1 }
+
+    _ :- sdf.Order { 1 }, sdf.Offset { -3 }
+    _ :- sdf.Order { 2 }, sdf.Onion
+    _ :- sdf.Order { 3 }, sdf.Solid { color: {255, 0, 0, 255} }
+}
+
+Prefab White {
+    - sdf.Order { 2 }
+
+    _ :- sdf.Order { 1 }, sdf.Solid { color: {255, 255, 255, 255} }
+}
+
+_ : Black {
+    - sdf.Circle {
+        center: { 400, 400 },
+        radius: 100,
+    }
+}
+
+_ : Black {
+    - sdf.Circle {
+        center: { 500, 400 },
+        radius: 100,
+    }
+}
+
+_ : Black {
+    - sdf.Line {
+        start: { 200, 200 },
+        end: { 500, 300 },
+    }
+}
+
+_ : White {
+    - sdf.Circle {
+        center: { 400, 500 },
+        radius: 100
+    }
+}
