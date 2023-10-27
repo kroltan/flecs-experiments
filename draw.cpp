@@ -8,20 +8,12 @@ void setup_draw(flecs::world & world) {
             .member<unsigned char>("b")
             .member<unsigned char>("a");
 
-    auto pre_draw = world.entity("PreDraw")
-            .add(flecs::Phase)
-            .depends_on(flecs::PreStore);
-
-    auto draw = world.entity("Draw")
+    auto post_draw = world.entity("Draw")
             .add(flecs::Phase)
             .depends_on(flecs::OnStore);
 
-    auto post_draw = world.entity("PostDraw")
-            .add(flecs::Phase)
-            .depends_on(draw);
-
     world.system()
-            .kind(pre_draw)
+            .kind(flecs::PreStore)
             .iter([](flecs::iter &it) {
                 BeginDrawing();
                 ClearBackground(WHITE);

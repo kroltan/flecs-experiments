@@ -9,9 +9,11 @@ struct sdf {
         float2 start, end;
     };
 
-    struct Circle {
-        float2 center;
-        float radius;
+    struct Arc {
+        float2 center{0, 0};
+        float radius{0};
+        float start{0};
+        float end{2.0f * PI};
     };
 
     struct Solid {

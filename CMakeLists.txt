@@ -14,6 +14,10 @@ add_executable(${PROJECT_NAME} main.cpp
         draw.cpp
         util.h
         sdf_fragments.h
+        animate.cpp
+        animate.h
+        transform.h
+        transform.cpp
 )
 target_link_libraries(${PROJECT_NAME} flecs::flecs_static)
 target_link_libraries(${PROJECT_NAME} raylib)

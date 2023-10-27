@@ -1,10 +1,9 @@
-#include <iostream>
-#include <format>
 #include <unordered_map>
 #include <functional>
 #include <ranges>
 #include <sstream>
 #include <memory>
+#include <iostream>
 #include "sdf.h"
 #include "draw.h"
 #include "util.h"
@@ -119,7 +118,7 @@ std::string stitch_shader(
             });
 
     std::sort(fragments.begin(), fragments.end(), [](auto &a, auto &b) {
-        return std::get<0>(b) - std::get<0>(a);
+        return std::get<0>(a) < std::get<0>(b);
     });
 
     std::ostringstream code;
@@ -148,8 +147,9 @@ std::string stitch_shader(
 
 sdf::sdf(flecs::world &world) {
     world.component<Line>()
-            .member<float2>("start")
-            .member<float2>("end")
+            .member<float2, flecs::units::length::Pixels>("start")
+            .member<float2, flecs::units::length::Pixels>("end")
+            .add_second<transform::Global>(flecs::With)
             .set(Fragment{
                     .file_name = "assets/shaders/sample_line.glsl",
                     .factory = [&](auto self, auto shader, const auto &identifier) {
@@ -158,13 +158,16 @@ sdf::sdf(flecs::world &world) {
             })
             .add<Shared>();
 
-    world.component<Circle>()
-            .member<float2>("center")
-            .member<float>("radius")
+    world.component<Arc>()
+            .member<float2, flecs::units::length::Pixels>("center")
+            .member<float, flecs::units::length::Pixels>("radius")
+            .member<float, flecs::units::angle::Radians>("start")
+            .member<float, flecs::units::angle::Radians>("end")
+            .add_second<transform::Global>(flecs::With)
             .set(Fragment{
-                    .file_name = "assets/shaders/sample_circle.glsl",
+                    .file_name = "assets/shaders/sample_arc.glsl",
                     .factory = [&](auto self, auto shader, const auto &identifier) {
-                        return std::make_unique<sample_circle_driver>(world, shader, identifier);
+                        return std::make_unique<sample_arc_driver>(world, shader, identifier);
                     },
             })
             .add<Shared>();
@@ -187,7 +190,7 @@ sdf::sdf(flecs::world &world) {
             });
 
     world.component<Offset>()
-            .member<float>("offset")
+            .member<float, flecs::units::length::Pixels>("offset")
             .set(Fragment{
                     .file_name = "assets/shaders/effect_transform.glsl",
                     .factory = [&](auto self, auto shader, const auto &identifier) {
@@ -219,7 +222,7 @@ sdf::sdf(flecs::world &world) {
                         .term(flecs::Prefab).filter()
                         .each([=](flecs::iter &it, size_t row) {
                             auto entity = it.entity(row);
-                            const auto component = it.id(1);
+                            const auto component = it.world().component(it.id(1));
                             auto parent = it.id(2).second();
 
                             entity.set(PendingFragment{
@@ -262,7 +265,6 @@ sdf::sdf(flecs::world &world) {
                         auto render = material.get_mut<SdfMaterial>();
                         render->fragments = std::move(update);
                         render->shader = shader;
-                        std::cout << code << std::endl;
                     }
             );
 

@@ -1,41 +1,90 @@
 Prefab Black {
     - sdf.Order { 1 }
 
-    _ :- sdf.Order { 1 }, sdf.Offset { -3 }
-    _ :- sdf.Order { 2 }, sdf.Onion
-    _ :- sdf.Order { 3 }, sdf.Solid { color: {255, 0, 0, 255} }
+    _ :- sdf.Order { 1 }, sdf.Onion
+    _ :- sdf.Order { 2 }, sdf.Offset { -3 }
+    _ :- sdf.Order { 3 }, sdf.Solid { color: {0, 0, 0, 255} }
 }
 
-Prefab White {
+Prefab Red {
     - sdf.Order { 2 }
-
-    _ :- sdf.Order { 1 }, sdf.Solid { color: {255, 255, 255, 255} }
+    _ :- sdf.Order { 1 }, sdf.Solid { color: {255, 0, 0, 255} }
 }
 
-_ : Black {
-    - sdf.Circle {
-        center: { 400, 400 },
+Prefab Nought : Black {
+    - sdf.Arc {
         radius: 100,
     }
-}
 
-_ : Black {
-    - sdf.Circle {
-        center: { 500, 400 },
-        radius: 100,
+    enter {
+        - animate.Time
+
+        sketch {
+            - (animate.Target, Nought)
+            - (animate.Property, sdf.Arc) { "end" }
+            - animate.InQuad { duration: 10 }
+            - animate.Tween {
+                from: 0,
+                to: 6.2830,
+            }
+        }
     }
 }
 
-_ : Black {
-    - sdf.Line {
-        start: { 200, 200 },
-        end: { 500, 300 },
+Prefab Cross {
+    a : Black { - sdf.Line { start: { -50, -50 }, end: { 50, 50 } } }
+    b : Black { - sdf.Line { start: { 50, -50 }, end: { -50, 50 } } }
+
+    enter {
+        - animate.Time
+
+        sketch_a_x {
+            - (animate.Target, Cross.a)
+            - (animate.Property, sdf.Line) { "end.x" }
+            - animate.InQuad
+            - animate.Tween {
+                from: 0,
+                to: 100,
+            }
+        }
+
+        sketch_a_y {
+            - (animate.Target, Cross.a)
+            - (animate.Property, sdf.Line) { "end.y" }
+            - animate.InQuad
+            - animate.Tween {
+                from: 0,
+                to: 100,
+            }
+        }
+
+        sketch_b_x {
+            - (animate.Target, Cross.b)
+            - (animate.Property, sdf.Line) { "end.x" }
+            - animate.InQuad
+            - animate.Tween {
+                from: 100,
+                to: 0,
+            }
+        }
+
+        sketch_b_y {
+            - (animate.Target, Cross.b)
+            - (animate.Property, sdf.Line) { "end.y" }
+            - animate.InQuad
+            - animate.Tween {
+                from: 0,
+                to: 100,
+            }
+        }
     }
 }
 
-_ : White {
-    - sdf.Circle {
-        center: { 400, 500 },
-        radius: 100
-    }
+n1 : Nought {
+    - transform.Position { { 200, 200 } }
+    - transform.Rotation { 1 }
+}
+c1 : Cross {
+    - transform.Position { { 300, 200 } }
+    - transform.Rotation { 1 }
 }

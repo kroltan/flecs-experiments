@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cmath>
+#include <iostream>
+
 struct float2 {
     float x, y;
 
@@ -8,6 +11,13 @@ struct float2 {
     float2(const float2 &other) = default;
 
     float2() = delete;
+
+    static float2 direction(float radians) {
+        return {
+            std::cos(radians),
+            std::sin(radians)
+        };
+    }
 
     float2 operator+(const float2 &other) const {
         float2 result = *this;
@@ -18,6 +28,12 @@ struct float2 {
     float2 operator-(const float2 &other) const {
         float2 result = *this;
         result -= other;
+        return result;
+    }
+
+    float2 operator*(const float2 &factor) const {
+        float2 result = *this;
+        result *= factor;
         return result;
     }
 
@@ -44,6 +60,11 @@ struct float2 {
         this->y += other.y;
     }
 
+    void operator*=(const float2 &factor) {
+        this->x *= factor.x;
+        this->y *= factor.y;
+    }
+
     void operator*=(const float &factor) {
         this->x *= factor;
         this->y *= factor;
@@ -52,5 +73,9 @@ struct float2 {
     void operator/=(const float &factor) {
         this->x /= factor;
         this->y /= factor;
+    }
+
+    friend std::ostream& operator<<(std::ostream &os, const float2 &value) {
+        return os << '(' << value.x << ", " << value.y << ')';
     }
 };
