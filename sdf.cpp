@@ -270,7 +270,11 @@ sdf::sdf(flecs::world &world) {
 
     world.system<const SdfMaterial>("draw")
             .term(flecs::Prefab)
+            .term<const Order>()
             .kind(flecs::OnStore)
+            .order_by<const Order>([](flecs::entity_t, const Order *a, flecs::entity_t, const Order *b){
+                return a->order - b->order;
+            })
             .each([](flecs::entity material, const SdfMaterial &material_data) {
                 rlEnableShader(material_data.shader.id);
                 for (auto &fragment: material_data.fragments) {

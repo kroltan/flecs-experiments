@@ -56,8 +56,8 @@ public:
 
         lines.each([this](const sdf::Line &line, const transform::Global &transform) {
             buffer.emplace_back(sdf::Line {
-                    .start = transform.local_to_global(line.start),
-                    .end = transform.local_to_global(line.end)
+                    .start = transform.apply(line.start),
+                    .end = transform.apply(line.end)
             });
         });
 
@@ -91,22 +91,22 @@ public:
     ~sample_arc_driver() override = default;
 
     void update(flecs::entity material) override {
-        const auto circles = get_arcs.iter()
+        const auto arcs = get_arcs.iter()
                 .set_var("material", material);
 
         center_radii_buffer.clear();
         sincos_rotation_buffer.clear();
 
-        circles.each([this](const sdf::Arc &arc, const transform::Global &transform) {
+        arcs.each([this](const sdf::Arc &arc, const transform::Global &transform) {
             const auto half_end = arc.end / 2;
-            const auto center = transform.local_to_global(arc.center);
+            const auto center = transform.apply(arc.center);
 
             center_radii_buffer.push_back(center.x);
             center_radii_buffer.push_back(center.y);
             center_radii_buffer.push_back(arc.radius * transform.scale);
             sincos_rotation_buffer.push_back(std::sin(half_end));
             sincos_rotation_buffer.push_back(std::cos(half_end));
-            sincos_rotation_buffer.push_back(transform.rotation_radians + arc.start);
+            sincos_rotation_buffer.push_back(arc.start + half_end - transform.rotation);
         });
 
         assert(center_radii_buffer.size() == sincos_rotation_buffer.size());

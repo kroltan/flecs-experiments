@@ -1,90 +1,158 @@
-Prefab Black {
-    - sdf.Order { 1 }
-
+Prefab Stroke {
     _ :- sdf.Order { 1 }, sdf.Onion
     _ :- sdf.Order { 2 }, sdf.Offset { -3 }
-    _ :- sdf.Order { 3 }, sdf.Solid { color: {0, 0, 0, 255} }
+    fill :- sdf.Order { 3 }
 }
 
-Prefab Red {
+Prefab Black : Stroke {
+    - sdf.Order { 1 }
+    fill :- sdf.Solid { color: {0, 0, 0, 255} }
+}
+
+Prefab Red : Stroke {
     - sdf.Order { 2 }
-    _ :- sdf.Order { 1 }, sdf.Solid { color: {255, 0, 0, 255} }
+    fill :- sdf.Solid { color: {255, 0, 0, 255} }
 }
 
-Prefab Nought : Black {
-    - sdf.Arc {
-        radius: 100,
+Prefab Blue : Stroke {
+    - sdf.Order { 3 }
+    fill :- sdf.Solid { color: {0, 0, 255, 255} }
+}
+
+Prefab Nought {
+    - animate.Time
+
+    arc : Red :- (SlotOf, Nought), sdf.Arc {
+        radius: 50
     }
 
     enter {
-        - animate.Time
+        - animate.Speed { 2 }
 
         sketch {
-            - (animate.Target, Nought)
+            - (animate.Target, Nought.arc)
             - (animate.Property, sdf.Arc) { "end" }
-            - animate.InQuad { duration: 10 }
             - animate.Tween {
-                from: 0,
-                to: 6.2830,
+                from: 0
+                to: 6.283
+                ease: InQuad
             }
         }
     }
 }
 
 Prefab Cross {
-    a : Black { - sdf.Line { start: { -50, -50 }, end: { 50, 50 } } }
-    b : Black { - sdf.Line { start: { 50, -50 }, end: { -50, 50 } } }
+    - animate.Time
+
+    a : Blue :- sdf.Line { start: { -50, -50 }, end: { 50, 50 } }, (SlotOf, Cross)
+    b : Blue :- sdf.Line { start: { 50, -50 }, end: { -50, 50 } }, (SlotOf, Cross)
 
     enter {
-        - animate.Time
+        - animate.Speed { 2 }
 
-        sketch_a_x {
-            - (animate.Target, Cross.a)
-            - (animate.Property, sdf.Line) { "end.x" }
-            - animate.InQuad
-            - animate.Tween {
-                from: 0,
-                to: 100,
+        step_1 {
+            sketch_b_x {
+                - (animate.Target, Cross.b)
+                - (animate.Property, sdf.Line) { "end.x" }
+                - animate.Tween {
+                    from: 50
+                    to: -50
+                    ease: InQuad
+                }
+            }
+
+            sketch_b_y {
+                - (animate.Target, Cross.b)
+                - (animate.Property, sdf.Line) { "end.y" }
+                - animate.Tween {
+                    from: -50
+                    to: 50
+                    ease: InQuad
+                }
             }
         }
 
-        sketch_a_y {
-            - (animate.Target, Cross.a)
-            - (animate.Property, sdf.Line) { "end.y" }
-            - animate.InQuad
-            - animate.Tween {
-                from: 0,
-                to: 100,
-            }
-        }
+        step_2 {
+            - animate.Delay { 1 }
 
-        sketch_b_x {
-            - (animate.Target, Cross.b)
-            - (animate.Property, sdf.Line) { "end.x" }
-            - animate.InQuad
-            - animate.Tween {
-                from: 100,
-                to: 0,
+            sketch_a_x {
+                - (animate.Target, Cross.a)
+                - (animate.Property, sdf.Line) { "end.x" }
+                - animate.Tween {
+                    from: -50
+                    to: 50
+                    ease: InQuad
+                }
             }
-        }
 
-        sketch_b_y {
-            - (animate.Target, Cross.b)
-            - (animate.Property, sdf.Line) { "end.y" }
-            - animate.InQuad
-            - animate.Tween {
-                from: 0,
-                to: 100,
+            sketch_a_y {
+                - (animate.Target, Cross.a)
+                - (animate.Property, sdf.Line) { "end.y" }
+                - animate.Tween {
+                    from: -50
+                    to: 50
+                    ease: InQuad
+                }
             }
         }
     }
 }
 
-n1 : Nought {
-    - transform.Position { { 200, 200 } }
-    - transform.Rotation { 1 }
+game :- transform.Local { position: { 20, 20 } }
+
+board {
+    - (ChildOf, game)
+
+    v1 : Black {
+        - sdf.Line { start: { 100, 0 }, end: { 100, 300 } }
+    }
+
+    v2 : Black {
+        - sdf.Line { start: { 200, 0 }, end: { 200, 300 } }
+    }
+
+    h1 : Black {
+        - sdf.Line { start: { 0, 100 }, end: { 300, 100 } }
+    }
+
+    h2 : Black {
+        - sdf.Line { start: { 0, 200 }, end: { 300, 200 } }
+    }
 }
-c1 : Cross {
-    - transform.Position { { 300, 200 } }
-    - transform.Rotation { 1 }
+
+test {
+    - animate.Delay { 1 }
+    - animate.Speed { 3 }
+
+    n1 : Nought {
+        - transform.Local {
+            position: { 200, 200 },
+            rotation: 1,
+        }
+    }
+
+    c1 : Cross {
+        - transform.Local {
+            position: { 300, 200 },
+        }
+
+        - animate.Delay { 0.5 }
+    }
+
+    c2 : Cross {
+        - transform.Local {
+            position: { 420, 200 },
+        }
+
+        - animate.Delay { 1.5 }
+    }
+
+    n2 : Nought {
+        - transform.Local {
+            position: { 520, 200 },
+            rotation: 1,
+        }
+
+        - animate.Delay { 2.5 }
+    }
 }

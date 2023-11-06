@@ -4,39 +4,12 @@
 #include <flecs.h>
 
 struct animate {
-    struct Ease {
-        float start = 0;
-        float duration = 1;
-    };
-
-    struct Linear : Ease {
-        [[nodiscard]] float ease(float t) const {
-            return t;
-        }
-    };
-
-    struct InQuad : Ease {
-        [[nodiscard]] float ease(float t) const {
-            return t * t;
-        }
-    };
-
-    struct OutQuad : Ease {
-        [[nodiscard]] float ease(float t) const {
-            const auto u = 1 - t;
-            return 1 - u * u;
-        }
-    };
-
-    struct InOutQuad : Ease {
-        [[nodiscard]] float ease(float t) const {
-            if (t < 0.5) {
-                return 2 * t * t;
-            } else {
-                const auto u = -2 * t + 2;
-                return t * 1 - u * u / 2;
-            }
-        }
+    enum class Ease {
+        Linear,
+        InQuad,
+        OutQuad,
+        InOutQuad,
+        Step,
     };
 
     struct Target {};
@@ -50,9 +23,18 @@ struct animate {
     };
 
     struct Tween {
-        float from;
-        float to;
+        float from = 0;
+        float to = 0;
+        Ease ease = Ease::Linear;
     };
 
-    explicit animate(flecs::world &world);
+    struct Delay {
+        float value = 0;
+    };
+
+    struct Speed {
+        float value = 1;
+    };
+
+    explicit animate(flecs::world &tween);
 };

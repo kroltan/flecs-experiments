@@ -3,63 +3,90 @@
 transform::transform(flecs::world &world) {
     world.module<transform>();
 
-    world.component<Global>()
+    world.component<Transform>()
             .member<float2, flecs::units::length::Pixels>("position")
-            .member<float, flecs::units::angle::Radians>("rotation_radians")
-            .member<float>("scale")
+            .member<float, flecs::units::angle::Radians>("rotation")
+            .member<float>("scale");
+
+    world.component<Local>().is_a<Transform>()
+            .add_second<Global>(flecs::With);
+
+    world.component<Global>()
+            .is_a<Transform>()
             .add(EcsAlwaysOverride);
 
-    world.component<Position>()
-            .member<float2, flecs::units::length::Pixels>("value")
-            .add_second<Global>(flecs::With);
-
-    world.component<Rotation>()
-            .member<float, flecs::units::angle::Radians>("radians")
-            .add_second<Global>(flecs::With);
-
-    world.component<Scale>()
-            .member<float>("value")
-            .add_second<Global>(flecs::With);
-
-    world.system<const Position, const Rotation, const Scale, const Global, Global>("ApplyGlobal")
-            .arg(1).optional()
-            .arg(2).optional()
-            .arg(3).optional()
-            .arg(4).parent().cascade().optional()
-            .arg(5).self()
+    world.system<const Local, const Global, Global>("propagate_global")
+            .arg(1)
+            .arg(2).parent().cascade().optional()
+            .arg(3).self()
+            .kind(flecs::OnValidate)
             .instanced()
             .iter([](
                     flecs::iter &it,
-                    const Position *const positions,
-                    const Rotation *const rotations,
-                    const Scale *const scales,
+                    const Local *const locals,
                     const Global *const parents,
                     Global *const each
             ) {
-                for (const auto row: it) {
-                    const auto &parent = parents ? *parents : Global{};
-                    auto &self = each[row];
+                if (parents && it.is_self(2)) {
+                    for (const auto row: it) {
+                        const auto &parent = parents[row];
+                        const auto &local = locals[row];
 
-                    self.position =
-                            positions
-                            ? parent.local_to_global(positions[row].value)
-                            : parent.position;
+                        auto &self = each[row];
+                        self.position = parent.apply(local.position);
+                        self.rotation = parent.rotation + local.rotation;
+                        self.scale = parent.scale * local.scale;
+                    }
+                } else if (parents) {
+                    const auto &parent = *parents;
 
-                    self.rotation_radians =
-                            rotations
-                            ? parent.rotation_radians + rotations[row].radians
-                            : parent.rotation_radians;
+                    for (const auto row: it) {
+                        const auto &local = locals[row];
 
-                    self.scale =
-                            scales
-                            ? parent.scale * scales[row].value
-                            : parent.scale;
+                        auto &self = each[row];
+                        self.position = parent.apply(local.position);
+                        self.rotation = parent.rotation + local.rotation;
+                        self.scale = parent.scale * local.scale;
+                    }
+                } else {
+                    for (const auto row: it) {
+                        const auto &local = locals[row];
+
+                        auto &self = each[row];
+                        self.position = local.position;
+                        self.rotation = local.rotation;
+                        self.scale = local.scale;
+                    }
+                }
+            });
+
+    world.system<const Global, Global>("inherit_global")
+            .arg(1).parent().cascade().optional()
+            .arg(2).self()
+            .without<Local>().self()
+            .kind(flecs::OnValidate)
+            .instanced()
+            .iter([](flecs::iter &it, const Global *const parents, Global *const each){
+                if (parents && it.is_self(1)) {
+                    for (const auto row : it) {
+                        each[row] = parents[row];
+                    }
+                } else if (parents) {
+                    const auto &parent = *parents;
+
+                    for (const auto row : it) {
+                        each[row] = parent;
+                    }
+                } else {
+                    for (const auto row : it) {
+                        each[row] = {};
+                    }
                 }
             });
 }
 
-float2 transform::Global::local_to_global(const float2 local) const {
-    float2 down = float2::direction(rotation_radians);
+float2 transform::Transform::apply(const float2 local) const {
+    float2 down = float2::direction(rotation);
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ArgumentSelectionDefects"

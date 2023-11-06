@@ -6,14 +6,22 @@
 #include "transform.h"
 
 
+struct Board {
+    static const size_t dimension = 3;
+    std::array<flecs::entity, dimension * dimension> cells {};
+};
+
+
 int main(int argc, char *argv[]) {
     flecs::world world(argc, argv);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
-    InitWindow(800, 450, "Chillworld");
+    InitWindow(340, 400, "Chillworld");
 
     world.component<float2>()
             .member<float>("x")
             .member<float>("y");
+
+    world.component<Board>();
 
     setup_draw(world);
 
